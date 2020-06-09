@@ -36,3 +36,16 @@ DISCONNECT:
     Client: <1> <6>
     Server: No response, then disconnect the client
    
+# Solution
+
+## Data Structure Design
+
+Data structure design was driven by the requested asymptotic complexities. Given the need to achieve O(log n) for add and remove operations, O(1) for size and get, and as fast as possible in the range queries, it was determined to use a combination of two complementing data structures. To achieve O(1) in get, we need a direct (or semi-direct) addressing structure and after considering the cardinality (in the range of 0 to 2^31) it requires the use of a hash function to transform the keys to a discret range. For this reason as first data structure was selected a hash map.
+
+With the goal to provide the best possible version for GETRANGE, it was decided to use a search tree, where the key of each node will be the score value, and contains a list for the keys containing that value. The implementation details of the structure has to guarantee that insert and remove operations in O(log n), and execution time logaritmic for the worst case scenarios. The structures capable to guarantee those properties are balanced trees, where it's enforced that the heith (h) is logaritmic with respect to the number of nodes. Some examples of those strucutures are red-black trees (h=2log(n+1)), AVL, 2-3 trees, B-tries, k-neigbours trees and others.
+
+In this context is important to mention, it was also studied the use of van Emde Boas trees. This data structure is capable to perform all the basic operatios in O(log log u), given the keys are in the range from 0 to u. In the problem at hand where the range of the keys is big, this approach produce an use of memory close to 8GB to store. Considering the lack of specific information about the statistics related with the distribution of the elements, we assume the number of elements to store is going to be in practice considerably smaller than the potential universe of keys.
+
+After studing the state of the art in research regarding dynamic range search, several sudies were found. Between them we need to highligth the work "On Dynamic Range Reporting in One Dimension" giving a perspective on the status of the field. In this work the authors propose a data structure to guarantee O(log log n) for searchs, at the same time they keep logaritmic times for updates and their space requirements are O(n), being n the number of elements to store. However, some of the implementation details are not clear in the work. For these reasons to provide the solution at this problem it was chosen to use as base for the implementation the theory behind red-black trees.
+
+
