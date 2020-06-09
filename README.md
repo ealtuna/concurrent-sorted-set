@@ -54,19 +54,19 @@ For the second version an optimization is applied to improve the performance by 
 
 ## Class design
 
-Para representar un conjunto, se crearon las clases SortedSetState y SortedSetHandler que permiten almacenar el estado y realizar las operaciones básicas sobre el conjunto, respectivamente. En su implementación está estructura para almacenar y realizar las operaciones mantiene la tabla hash y el árbol de búsqueda, de forma paralela. De forma que las operaciones de actualización se realizan sobre ambas, el tamaño y la obtención sobre la tabla de dispersión y la búsqueda de rango sobre el árbol de búsqueda.
+To represent a set, the clases `SortedSetState` and `SortedSetHandler` were created. They have the responsability the store the state and perform the basic opertions on the set, in that order. When performing the operations, the data structure keep the state of the hash map and the search tree in parallel. In this way the update operations are persisted in both. The get and size operations are executed in the hash map and the range search on the search tree.
 
-Para el manejo de todos los conjuntos se creó la clase SortedSetManager que realiza las operaciones sobre los eventos. Las responsabilidades de esta clase son transformar los datos, seleccionar el o los conjuntos sobre los que se realizará la operación y crear un nuevo conjunto cuando sea necesario. Para el caso de la búsqueda por rango se identifican los conjuntos objetivo y se unifican los resultados para ser entregados al cliente.
+As container of the collection of sets it was created the class SortedSetManager. The responsabilities of this class are transform the data, select the appropiate target set and set creation when they don't exists. In the case of the range search this class aggregates the results and format them to return to the client. 
 
 ## Data strcucture network access
 
-Para el acceso a través de la red se utilizó el soporte básico brindado por los sockets de Java. Para el servidor se creó un lanzador que se encuentra en “com.sortedset.init.launcher”, que se encarga de levantar un hilo que escucha y maneja las peticiones de los clientes.
+For network communication basic Java socket support was used. For the server it was created a bootstraper `launcher`, with the responsaility to create a thread to listen to connections and handle client operations.
 
-El hilo que escucha las peticiones de los clientes se encuentra en la clase “com.sortedset.networking.ConnectionListener”  que recibe las conexiones entrantes. Para cada nueva conexión se crea un hilo que es iniciado para su manejo. Cada hilo iniciado es almacenado en una lista para poder detenerlo o realizar cualquier otra operación con el mismo. La lista de hilos es chequeada al pasar ciertos intervalos de tiempo para eliminar aquellas peticiones que hayan terminado. Luego de iniciado el hilo que maneja la petición el control regresa al hilo principal, por lo que se está en condición de procesar tantas comunicaciones concurrentes como se desee.
+The class `ConnectionListener` has the logic to create the handshake with clients. For each new new connection a new thread is started and it's reference is stored to be able to kill the connection of any other action. The list of thread is monitored after an interval to remove iddle connections. After the thread is created the main thread returns to listen for new connections, opening the possibility to handle a big number of concurrent connections.
 
-Los hilos que individualmente manejan las peticiones se encuentran representados por la clase “com.sortedset.networking.ConnectionHandler” que comienza la comunicación recibiendo el comando a ejecutar y en función de este recibe los parámetros y ejecuta la acción asociada sobre la estructura de datos. En caso que el comando lo requiera se envía la respuesta al cliente y se cierra la conexión.
+The class `ConnectionHandler` repesents the threads that handle individual requests. It's lifecicle begans when receiving a command and the parameters. Using the underlying data strcture handler the request is routed and after resolved the response is passed to the client and the connection is closed.
 
-El ConnectionListener crea para su trabajo una única instancia del SortedSetManager, y con esta realiza todas las operaciones solicitadas hasta que se detenga la aplicación. Las configuraciones generales, tales como puerto de comunicación y códigos de los comandos son establecidos en la clase “com.sortedset.config.CommonParam”.
+A singleton is created for the `SortedSetManager`, to hold the state of all the sets in the program. General configurations, like connection port to listed and command codes are holded by `CommonParam`.
 
 ## Concurrent operations in the Sorted Set
 
